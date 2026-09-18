@@ -16,6 +16,7 @@ export type Recipe = {
   servings: number;
   favorite: boolean;
   tile: string;
+  photo?: string;
   ingredients: Ingredient[];
   steps: Step[];
   memo: string;

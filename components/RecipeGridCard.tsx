@@ -31,19 +31,29 @@ export function RecipeGridCard({
           className="washed"
           style={{
             height: 112,
-            background: recipe.tile,
+            background: recipe.photo ? undefined : recipe.tile,
             display: "grid",
             placeItems: "center",
+            overflow: "hidden",
           }}
         >
-          <span
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              border: "2.5px solid rgba(255,255,255,.75)",
-            }}
-          />
+          {recipe.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={recipe.photo}
+              alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <span
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                border: "2.5px solid rgba(255,255,255,.75)",
+              }}
+            />
+          )}
         </div>
         <button
           className="btn btn-icon"

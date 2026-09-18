@@ -10,20 +10,19 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(e: FormEvent) {
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const name = username.trim();
     if (!name || !password) {
       setError("ユーザー名とパスワードを入力してください");
       return;
     }
-    if (mode === "login") {
-      const ok = login(name, password);
-      setError(ok ? "" : "ユーザー名またはパスワードが正しくありません");
-    } else {
-      const ok = register(name, password);
-      setError(ok ? "" : "このユーザー名は既に使われています");
-    }
+    setSubmitting(true);
+    const result = mode === "login" ? await login(name, password) : await register(name, password);
+    setSubmitting(false);
+    setError(result.ok ? "" : result.error ?? "エラーが発生しました");
   }
 
   function switchMode() {
@@ -106,13 +105,18 @@ export function LoginScreen() {
             <p style={{ margin: 0, fontSize: 12.5, color: "var(--color-accent-700)" }}>{error}</p>
           )}
 
-          <button className="btn btn-primary btn-block" style={{ padding: 13, fontSize: 15 }} type="submit">
+          <button
+            className="btn btn-primary btn-block"
+            style={{ padding: 13, fontSize: 15, opacity: submitting ? 0.7 : 1 }}
+            type="submit"
+            disabled={submitting}
+          >
             {mode === "login" ? "ログイン" : "登録してはじめる"}
           </button>
         </form>
 
         <button className="btn btn-ghost" style={{ alignSelf: "center", fontSize: 13 }} onClick={switchMode}>
-          {mode === "login" ? "アカウントをお持ちでない方はこちら" : "すでにアカウントをお持ちの方はこちら"}
+          {mode === "login" ? "新規登録" : "すでにアカウントをお持ちの方はこちら"}
         </button>
       </div>
     </div>

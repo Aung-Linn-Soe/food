@@ -9,36 +9,26 @@ import {
   useState,
 } from "react";
 
-type StoredUser = {
-  username: string;
-  password: string;
-};
+type AuthResult = { ok: boolean; error?: string };
 
 type AuthContextValue = {
   username: string | null;
   ready: boolean;
-  login: (username: string, password: string) => boolean;
-  register: (username: string, password: string) => boolean;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<AuthResult>;
+  register: (username: string, password: string) => Promise<AuthResult>;
+  logout: () => Promise<void>;
 };
-
-const USERS_KEY = "recipe-app-users-v1";
-const SESSION_KEY = "recipe-app-session-v1";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function loadUsers(): StoredUser[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(USERS_KEY);
-    return raw ? (JSON.parse(raw) as StoredUser[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveUsers(users: StoredUser[]) {
-  window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
+async function postJson(url: string, body: unknown) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  return { res, data };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -46,30 +36,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setUsername(window.localStorage.getItem(SESSION_KEY));
-    setReady(true);
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => setUsername(data.username ?? null))
+      .catch(() => setUsername(null))
+      .finally(() => setReady(true));
   }, []);
 
-  const login = useCallback((name: string, password: string) => {
-    const users = loadUsers();
-    const found = users.find((u) => u.username === name && u.password === password);
-    if (!found) return false;
-    window.localStorage.setItem(SESSION_KEY, name);
-    setUsername(name);
-    return true;
+  const login = useCallback(async (name: string, password: string): Promise<AuthResult> => {
+    const { res, data } = await postJson("/api/auth/login", { username: name, password });
+    if (!res.ok) return { ok: false, error: data.error ?? "ログインに失敗しました" };
+    setUsername(data.username);
+    return { ok: true };
   }, []);
 
-  const register = useCallback((name: string, password: string) => {
-    const users = loadUsers();
-    if (users.some((u) => u.username === name)) return false;
-    saveUsers([...users, { username: name, password }]);
-    window.localStorage.setItem(SESSION_KEY, name);
-    setUsername(name);
-    return true;
+  const register = useCallback(async (name: string, password: string): Promise<AuthResult> => {
+    const { res, data } = await postJson("/api/auth/register", { username: name, password });
+    if (!res.ok) return { ok: false, error: data.error ?? "登録に失敗しました" };
+    setUsername(data.username);
+    return { ok: true };
   }, []);
 
-  const logout = useCallback(() => {
-    window.localStorage.removeItem(SESSION_KEY);
+  const logout = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
     setUsername(null);
   }, []);
 
