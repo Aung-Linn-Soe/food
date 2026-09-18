@@ -1,29 +1,29 @@
 :root {
-  --color-bg: #efe3cd;
-  --color-surface: #f8f0e2;
-  --color-text: #201e1d;
-  --color-divider: #e0d2b6;
+  --color-bg: #9fd1df;
+  --color-surface: #fbfefe;
+  --color-text: #16323f;
+  --color-divider: #cfe6ec;
 
-  --color-neutral-100: #f9f4ed;
-  --color-neutral-400: #c9bca1;
-  --color-neutral-600: #93866c;
-  --color-neutral-700: #786c56;
-  --color-neutral-900: #292420;
+  --color-neutral-100: #ffffff;
+  --color-neutral-400: #b9d3da;
+  --color-neutral-600: #6f8a92;
+  --color-neutral-700: #4d6870;
+  --color-neutral-900: #16272d;
 
-  --color-accent-200: #f1d9bd;
-  --color-accent-400: #dba86c;
-  --color-accent: #c9873c;
-  --color-accent-700: #a9672a;
-  --color-accent-800: #8a551f;
+  --color-accent-200: #ffe1cf;
+  --color-accent-400: #ff9f66;
+  --color-accent: #f0793b;
+  --color-accent-700: #c85a22;
+  --color-accent-800: #a1481b;
 
-  --color-accent-2-100: #e6ecdf;
-  --color-accent-2-200: #d3e0c6;
-  --color-accent-2-600: #6b8752;
-  --color-accent-2-800: #445a30;
+  --color-accent-2-100: #dff2ec;
+  --color-accent-2-200: #bfe4d8;
+  --color-accent-2-600: #2f8f77;
+  --color-accent-2-800: #1f5c4c;
 
-  --shadow-sm: 0 2px 8px rgba(41, 36, 32, 0.08);
-  --shadow-md: 0 6px 20px rgba(41, 36, 32, 0.12);
-  --shadow-lg: 0 16px 40px rgba(41, 36, 32, 0.22);
+  --shadow-sm: 0 2px 8px rgba(22, 50, 63, 0.1);
+  --shadow-md: 0 6px 20px rgba(22, 50, 63, 0.14);
+  --shadow-lg: 0 16px 40px rgba(22, 50, 63, 0.24);
 
   --font-heading: var(--font-heading-jp), "Zen Maru Gothic", sans-serif;
   --font-body: var(--font-body-jp), "Noto Sans JP", sans-serif;

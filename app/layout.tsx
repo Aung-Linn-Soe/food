@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Zen_Maru_Gothic, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { RecipeProvider } from "@/store/RecipeContext";
+import { AuthProvider } from "@/store/AuthContext";
 
 const headingFont = Zen_Maru_Gothic({
   variable: "--font-heading-jp",
@@ -30,7 +31,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ja" className={`${headingFont.variable} ${bodyFont.variable} h-full`}>
       <body className="min-h-full flex flex-col">
-        <RecipeProvider>{children}</RecipeProvider>
+        <AuthProvider>
+          <RecipeProvider>{children}</RecipeProvider>
+        </AuthProvider>
       </body>
     </html>
   );
