@@ -9,9 +9,9 @@ import {
   useState,
 } from "react";
 import { SEED_CATEGORIES, SEED_RECIPES } from "@/data/seed";
-import { Category, Ingredient, Recipe, UNCATEGORIZED_ID } from "@/types/recipe";
+import { Category, Ingredient, Recipe, Step, UNCATEGORIZED_ID } from "@/types/recipe";
 
-const STORAGE_KEY = "recipe-app-state-v1";
+const STORAGE_KEY = "recipe-app-state-v2";
 
 type StoredState = {
   recipes: Recipe[];
@@ -24,6 +24,7 @@ type NewRecipeInput = {
   time: number;
   servings: number;
   ingredients: Ingredient[];
+  steps: Step[];
   memo: string;
 };
 
@@ -105,7 +106,7 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
         favorite: false,
         tile,
         ingredients: input.ingredients.filter((i) => i.name.trim() !== ""),
-        steps: [],
+        steps: input.steps.filter((s) => s.text.trim() !== "" || s.photo),
         memo: input.memo,
       };
       return [newRecipe, ...prev];
