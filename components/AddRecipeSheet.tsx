@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Category, Ingredient, Step } from "@/types/recipe";
+import { Category, Ingredient, Recipe, Step } from "@/types/recipe";
 import { CloseIcon, PhotoIcon } from "@/components/icons";
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -15,10 +15,12 @@ function readFileAsDataUrl(file: File): Promise<string> {
 
 export function AddRecipeSheet({
   categories,
+  initialRecipe,
   onClose,
   onSave,
 }: {
   categories: Category[];
+  initialRecipe?: Recipe;
   onClose: () => void;
   onSave: (input: {
     name: string;
@@ -28,19 +30,36 @@ export function AddRecipeSheet({
     ingredients: Ingredient[];
     steps: Step[];
     memo: string;
+    photo?: string;
   }) => void;
 }) {
-  const [name, setName] = useState("");
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
-  const [time, setTime] = useState("");
-  const [servings, setServings] = useState("");
-  const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { name: "", amount: "" },
-    { name: "", amount: "" },
-    { name: "", amount: "" },
-  ]);
-  const [steps, setSteps] = useState<Step[]>([{ text: "" }, { text: "" }]);
-  const [memo, setMemo] = useState("");
+  const isEditing = Boolean(initialRecipe);
+  const [name, setName] = useState(initialRecipe?.name ?? "");
+  const [categoryId, setCategoryId] = useState(initialRecipe?.categoryId ?? categories[0]?.id ?? "");
+  const [time, setTime] = useState(initialRecipe ? String(initialRecipe.time) : "");
+  const [servings, setServings] = useState(initialRecipe ? String(initialRecipe.servings) : "");
+  const [photo, setPhoto] = useState<string | undefined>(initialRecipe?.photo);
+  const [ingredients, setIngredients] = useState<Ingredient[]>(
+    initialRecipe && initialRecipe.ingredients.length > 0
+      ? initialRecipe.ingredients
+      : [
+          { name: "", amount: "" },
+          { name: "", amount: "" },
+          { name: "", amount: "" },
+        ]
+  );
+  const [steps, setSteps] = useState<Step[]>(
+    initialRecipe && initialRecipe.steps.length > 0
+      ? initialRecipe.steps
+      : [{ text: "" }, { text: "" }]
+  );
+  const [memo, setMemo] = useState(initialRecipe?.memo ?? "");
+
+  async function handlePhotoSelect(file: File | null) {
+    if (!file) return;
+    const dataUrl = await readFileAsDataUrl(file);
+    setPhoto(dataUrl);
+  }
 
   function updateIngredient(index: number, field: keyof Ingredient, value: string) {
     setIngredients((prev) =>
@@ -82,6 +101,7 @@ export function AddRecipeSheet({
       ingredients,
       steps,
       memo,
+      photo,
     });
   }
 
@@ -123,7 +143,9 @@ export function AddRecipeSheet({
           }}
         />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <h3 style={{ margin: 0, fontSize: 22, fontFamily: "var(--font-heading)" }}>レシピを追加</h3>
+          <h3 style={{ margin: 0, fontSize: 22, fontFamily: "var(--font-heading)" }}>
+            {isEditing ? "レシピを編集" : "レシピを追加"}
+          </h3>
           <button className="btn btn-icon" onClick={onClose}>
             <CloseIcon />
           </button>
@@ -132,25 +154,61 @@ export function AddRecipeSheet({
         <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-              <div
-                style={{
-                  width: 96,
-                  height: 96,
-                  flex: "none",
-                  borderRadius: 26,
-                  border: "2px dashed var(--color-neutral-400)",
-                  display: "grid",
-                  placeItems: "center",
-                  gap: 4,
-                  color: "var(--color-neutral-600)",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  fontSize: 11,
-                }}
-              >
-                <PhotoIcon />
-                写真を追加
-              </div>
+              {photo ? (
+                <div style={{ position: "relative", width: 96, height: 96, flex: "none" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo}
+                    alt=""
+                    style={{
+                      width: 96,
+                      height: 96,
+                      borderRadius: 26,
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                  <button
+                    className="btn btn-icon"
+                    style={{
+                      position: "absolute",
+                      top: -6,
+                      right: -6,
+                      background: "rgba(245,234,216,.9)",
+                      padding: 5,
+                    }}
+                    onClick={() => setPhoto(undefined)}
+                  >
+                    <CloseIcon size={13} />
+                  </button>
+                </div>
+              ) : (
+                <label
+                  style={{
+                    width: 96,
+                    height: 96,
+                    flex: "none",
+                    borderRadius: 26,
+                    border: "2px dashed var(--color-neutral-400)",
+                    display: "grid",
+                    placeItems: "center",
+                    gap: 4,
+                    color: "var(--color-neutral-600)",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    fontSize: 11,
+                  }}
+                >
+                  <PhotoIcon />
+                  写真を追加
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={(e) => handlePhotoSelect(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+              )}
               <div className="field" style={{ flex: 1, minWidth: 0 }}>
                 <label>料理名</label>
                 <input
@@ -364,7 +422,7 @@ export function AddRecipeSheet({
           style={{ padding: 14, fontSize: 15, marginTop: 18 }}
           onClick={handleSave}
         >
-          レシピを保存
+          {isEditing ? "変更を保存" : "レシピを保存"}
         </button>
       </div>
     </>

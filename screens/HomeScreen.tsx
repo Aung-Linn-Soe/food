@@ -5,6 +5,8 @@ import { useRecipes } from "@/store/RecipeContext";
 import { SearchBar } from "@/components/SearchBar";
 import { CategoryChips } from "@/components/CategoryChips";
 import { RecipeListCard } from "@/components/RecipeListCard";
+import { PantrySearchScreen } from "@/screens/PantrySearchScreen";
+import { ChevronRightIcon } from "@/components/icons";
 import { Recipe } from "@/types/recipe";
 
 const ALL = "all";
@@ -13,6 +15,7 @@ export function HomeScreen({ onOpenRecipe }: { onOpenRecipe: (recipe: Recipe) =>
   const { recipes, categories, categoryName, toggleFavorite } = useRecipes();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState(ALL);
+  const [pantryMode, setPantryMode] = useState(false);
 
   const chips = useMemo(
     () => [{ id: ALL, label: "すべて" }, ...categories.map((c) => ({ id: c.id, label: c.name }))],
@@ -32,6 +35,12 @@ export function HomeScreen({ onOpenRecipe }: { onOpenRecipe: (recipe: Recipe) =>
     });
   }, [recipes, query, activeCategory, categoryName]);
 
+  if (pantryMode) {
+    return (
+      <PantrySearchScreen onOpenRecipe={onOpenRecipe} onBack={() => setPantryMode(false)} />
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
@@ -42,6 +51,33 @@ export function HomeScreen({ onOpenRecipe }: { onOpenRecipe: (recipe: Recipe) =>
           全{recipes.length}品のレシピ
         </p>
       </div>
+
+      <button
+        onClick={() => setPantryMode(true)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "16px 18px",
+          borderRadius: 26,
+          background: "var(--color-accent-2-100)",
+          color: "var(--color-accent-2-800)",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+      >
+        <span style={{ fontSize: 22 }}>🥬</span>
+        <span style={{ flex: 1 }}>
+          <div style={{ fontFamily: "var(--font-heading)", fontSize: 15 }}>
+            冷蔵庫の材料からさがす
+          </div>
+          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>
+            持っている材料を選ぶだけで、作れそうなレシピを提案します
+          </div>
+        </span>
+        <ChevronRightIcon size={18} color="var(--color-accent-2-800)" />
+      </button>
 
       <SearchBar value={query} onChange={setQuery} placeholder="料理名・材料・カテゴリで検索" />
       <CategoryChips chips={chips} activeId={activeCategory} onPick={setActiveCategory} />

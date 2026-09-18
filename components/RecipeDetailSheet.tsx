@@ -8,11 +8,13 @@ export function RecipeDetailSheet({
   categoryLabel,
   onClose,
   onToggleFavorite,
+  onEdit,
 }: {
   recipe: Recipe;
   categoryLabel: string;
   onClose: () => void;
   onToggleFavorite: () => void;
+  onEdit: () => void;
 }) {
   return (
     <>
@@ -54,8 +56,24 @@ export function RecipeDetailSheet({
         <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 18 }}>
           <div
             className="washed"
-            style={{ width: 74, height: 74, flex: "none", borderRadius: 24, background: recipe.tile }}
-          />
+            style={{
+              width: 74,
+              height: 74,
+              flex: "none",
+              borderRadius: 24,
+              background: recipe.photo ? undefined : recipe.tile,
+              overflow: "hidden",
+            }}
+          >
+            {recipe.photo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={recipe.photo}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            )}
+          </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3 style={{ margin: 0, fontSize: 23, lineHeight: 1.15, fontFamily: "var(--font-heading)" }}>
               {recipe.name}
@@ -161,6 +179,9 @@ export function RecipeDetailSheet({
           </button>
           <button className="btn btn-secondary" style={{ padding: "12px 18px" }} onClick={onToggleFavorite}>
             {recipe.favorite ? "お気に入り解除" : "お気に入り登録"}
+          </button>
+          <button className="btn btn-secondary" style={{ padding: "12px 18px" }} onClick={onEdit}>
+            編集
           </button>
         </div>
       </div>

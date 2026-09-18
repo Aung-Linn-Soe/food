@@ -14,11 +14,12 @@ import { useAuth } from "@/store/AuthContext";
 import { Recipe } from "@/types/recipe";
 
 export function AppShell() {
-  const { categories, categoryName, toggleFavorite, addRecipe } = useRecipes();
+  const { categories, categoryName, toggleFavorite, addRecipe, updateRecipe } = useRecipes();
   const { username, logout } = useAuth();
   const [tab, setTab] = useState<TabKey>("home");
   const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
 
   return (
     <div
@@ -84,6 +85,10 @@ export function AppShell() {
             toggleFavorite(openRecipe.id);
             setOpenRecipe({ ...openRecipe, favorite: !openRecipe.favorite });
           }}
+          onEdit={() => {
+            setEditingRecipe(openRecipe);
+            setOpenRecipe(null);
+          }}
         />
       )}
 
@@ -91,9 +96,21 @@ export function AppShell() {
         <AddRecipeSheet
           categories={categories}
           onClose={() => setAddOpen(false)}
-          onSave={(input) => {
-            addRecipe(input);
+          onSave={async (input) => {
+            await addRecipe(input);
             setAddOpen(false);
+          }}
+        />
+      )}
+
+      {editingRecipe && (
+        <AddRecipeSheet
+          categories={categories}
+          initialRecipe={editingRecipe}
+          onClose={() => setEditingRecipe(null)}
+          onSave={async (input) => {
+            await updateRecipe(editingRecipe.id, input);
+            setEditingRecipe(null);
           }}
         />
       )}

@@ -8,15 +8,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import { SEED_CATEGORIES, SEED_RECIPES } from "@/data/seed";
+import { useAuth } from "@/store/AuthContext";
 import { Category, Ingredient, Recipe, Step, UNCATEGORIZED_ID } from "@/types/recipe";
-
-const STORAGE_KEY = "recipe-app-state-v2";
-
-type StoredState = {
-  recipes: Recipe[];
-  categories: Category[];
-};
 
 type NewRecipeInput = {
   name: string;
@@ -26,16 +19,19 @@ type NewRecipeInput = {
   ingredients: Ingredient[];
   steps: Step[];
   memo: string;
+  photo?: string;
 };
 
 type RecipeContextValue = {
   recipes: Recipe[];
   categories: Category[];
+  loading: boolean;
   toggleFavorite: (id: string) => void;
-  addRecipe: (input: NewRecipeInput) => void;
-  addCategory: (name: string) => void;
-  renameCategory: (id: string, name: string) => void;
-  removeCategory: (id: string) => void;
+  addRecipe: (input: NewRecipeInput) => Promise<void>;
+  updateRecipe: (id: string, input: NewRecipeInput) => Promise<void>;
+  addCategory: (name: string) => Promise<void>;
+  renameCategory: (id: string, name: string) => Promise<void>;
+  removeCategory: (id: string) => Promise<void>;
   categoryName: (id: string) => string;
   recipeCountForCategory: (id: string) => number;
 };
@@ -49,95 +45,152 @@ const TILE_COLORS = [
   "linear-gradient(140deg,#b7c79b,#82965f)",
 ];
 
-const RecipeContext = createContext<RecipeContextValue | null>(null);
-
-function loadInitialState(): StoredState {
-  if (typeof window === "undefined") {
-    return { recipes: SEED_RECIPES, categories: SEED_CATEGORIES };
+function tileForId(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
   }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { recipes: SEED_RECIPES, categories: SEED_CATEGORIES };
-    const parsed = JSON.parse(raw) as StoredState;
-    if (!parsed.recipes || !parsed.categories) {
-      return { recipes: SEED_RECIPES, categories: SEED_CATEGORIES };
-    }
-    return parsed;
-  } catch {
-    return { recipes: SEED_RECIPES, categories: SEED_CATEGORIES };
-  }
+  return TILE_COLORS[hash % TILE_COLORS.length];
 }
 
+type ApiRecipe = {
+  id: string;
+  name: string;
+  categoryId: string | null;
+  time: number;
+  servings: number;
+  favorite: boolean;
+  memo: string;
+  imageBase64: string | null;
+  ingredients: Ingredient[];
+  steps: Step[];
+};
+
+const RecipeContext = createContext<RecipeContextValue | null>(null);
+
 export function RecipeProvider({ children }: { children: React.ReactNode }) {
-  const [recipes, setRecipes] = useState<Recipe[]>(SEED_RECIPES);
-  const [categories, setCategories] = useState<Category[]>(SEED_CATEGORIES);
-  const [hydrated, setHydrated] = useState(false);
+  const { username, ready } = useAuth();
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const initial = loadInitialState();
-    setRecipes(initial.recipes);
-    setCategories(initial.categories);
-    setHydrated(true);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [catRes, recRes] = await Promise.all([
+        fetch("/api/categories"),
+        fetch("/api/recipes"),
+      ]);
+      const cats: Category[] = catRes.ok ? await catRes.json() : [];
+      const recs: ApiRecipe[] = recRes.ok ? await recRes.json() : [];
+      setCategories(cats);
+      setRecipes(
+        recs.map((r) => ({
+          id: r.id,
+          name: r.name,
+          categoryId: r.categoryId ?? UNCATEGORIZED_ID,
+          time: r.time,
+          servings: r.servings,
+          favorite: r.favorite,
+          tile: tileForId(r.id),
+          photo: r.imageBase64 ?? undefined,
+          ingredients: r.ingredients,
+          steps: r.steps,
+          memo: r.memo,
+        }))
+      );
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ recipes, categories })
-    );
-  }, [recipes, categories, hydrated]);
+    if (!ready) return;
+    if (!username) {
+      setRecipes([]);
+      setCategories([]);
+      return;
+    }
+    refresh();
+  }, [ready, username, refresh]);
 
-  const toggleFavorite = useCallback((id: string) => {
-    setRecipes((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, favorite: !r.favorite } : r))
-    );
-  }, []);
+  const toggleFavorite = useCallback(
+    (id: string) => {
+      setRecipes((prev) => {
+        const next = prev.map((r) => (r.id === id ? { ...r, favorite: !r.favorite } : r));
+        const target = next.find((r) => r.id === id);
+        if (target) {
+          fetch(`/api/recipes/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ favorite: target.favorite }),
+          }).catch(() => {});
+        }
+        return next;
+      });
+    },
+    []
+  );
 
-  const addRecipe = useCallback((input: NewRecipeInput) => {
-    setRecipes((prev) => {
-      const tile = TILE_COLORS[prev.length % TILE_COLORS.length];
-      const newRecipe: Recipe = {
-        id: `${Date.now()}`,
-        name: input.name,
-        categoryId: input.categoryId || UNCATEGORIZED_ID,
-        time: input.time,
-        servings: input.servings,
-        favorite: false,
-        tile,
-        ingredients: input.ingredients.filter((i) => i.name.trim() !== ""),
-        steps: input.steps.filter((s) => s.text.trim() !== "" || s.photo),
-        memo: input.memo,
-      };
-      return [newRecipe, ...prev];
-    });
-  }, []);
+  const addRecipe = useCallback(
+    async (input: NewRecipeInput) => {
+      await fetch("/api/recipes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      await refresh();
+    },
+    [refresh]
+  );
 
-  const addCategory = useCallback((name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setCategories((prev) => [
-      ...prev,
-      { id: `cat-${Date.now()}`, name: trimmed },
-    ]);
-  }, []);
+  const updateRecipe = useCallback(
+    async (id: string, input: NewRecipeInput) => {
+      await fetch(`/api/recipes/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      await refresh();
+    },
+    [refresh]
+  );
 
-  const renameCategory = useCallback((id: string, name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setCategories((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, name: trimmed } : c))
-    );
-  }, []);
+  const addCategory = useCallback(
+    async (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      await refresh();
+    },
+    [refresh]
+  );
 
-  const removeCategory = useCallback((id: string) => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
-    setRecipes((prev) =>
-      prev.map((r) =>
-        r.categoryId === id ? { ...r, categoryId: UNCATEGORIZED_ID } : r
-      )
-    );
-  }, []);
+  const renameCategory = useCallback(
+    async (id: string, name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      await fetch(`/api/categories/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      await refresh();
+    },
+    [refresh]
+  );
+
+  const removeCategory = useCallback(
+    async (id: string) => {
+      await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      await refresh();
+    },
+    [refresh]
+  );
 
   const categoryName = useCallback(
     (id: string) => {
@@ -156,8 +209,10 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     () => ({
       recipes,
       categories,
+      loading,
       toggleFavorite,
       addRecipe,
+      updateRecipe,
       addCategory,
       renameCategory,
       removeCategory,
@@ -167,8 +222,10 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     [
       recipes,
       categories,
+      loading,
       toggleFavorite,
       addRecipe,
+      updateRecipe,
       addCategory,
       renameCategory,
       removeCategory,

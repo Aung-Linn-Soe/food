@@ -35,19 +35,29 @@ export function RecipeListCard({
           height: 92,
           flex: "none",
           borderRadius: 22,
-          background: recipe.tile,
+          background: recipe.photo ? undefined : recipe.tile,
           display: "grid",
           placeItems: "center",
+          overflow: "hidden",
         }}
       >
-        <span
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: "50%",
-            border: "2.5px solid rgba(255,255,255,.75)",
-          }}
-        />
+        {recipe.photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={recipe.photo}
+            alt=""
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <span
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: "50%",
+              border: "2.5px solid rgba(255,255,255,.75)",
+            }}
+          />
+        )}
       </div>
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
         <div
