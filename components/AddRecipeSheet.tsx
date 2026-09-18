@@ -1,8 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Category, Ingredient } from "@/types/recipe";
+import { Category, Ingredient, Step } from "@/types/recipe";
 import { CloseIcon, PhotoIcon } from "@/components/icons";
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 export function AddRecipeSheet({
   categories,
@@ -17,6 +26,7 @@ export function AddRecipeSheet({
     time: number;
     servings: number;
     ingredients: Ingredient[];
+    steps: Step[];
     memo: string;
   }) => void;
 }) {
@@ -29,12 +39,37 @@ export function AddRecipeSheet({
     { name: "", amount: "" },
     { name: "", amount: "" },
   ]);
+  const [steps, setSteps] = useState<Step[]>([{ text: "" }, { text: "" }]);
   const [memo, setMemo] = useState("");
 
   function updateIngredient(index: number, field: keyof Ingredient, value: string) {
     setIngredients((prev) =>
       prev.map((ing, i) => (i === index ? { ...ing, [field]: value } : ing))
     );
+  }
+
+  function updateStepText(index: number, value: string) {
+    setSteps((prev) => prev.map((s, i) => (i === index ? { ...s, text: value } : s)));
+  }
+
+  async function updateStepPhoto(index: number, file: File | null) {
+    if (!file) return;
+    const dataUrl = await readFileAsDataUrl(file);
+    setSteps((prev) => prev.map((s, i) => (i === index ? { ...s, photo: dataUrl } : s)));
+  }
+
+  function removeStepPhoto(index: number) {
+    setSteps((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) return s;
+        const { photo: _photo, ...rest } = s;
+        return rest;
+      })
+    );
+  }
+
+  function removeStep(index: number) {
+    setSteps((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleSave() {
@@ -45,6 +80,7 @@ export function AddRecipeSheet({
       time: Number(time) || 0,
       servings: Number(servings) || 0,
       ingredients,
+      steps,
       memo,
     });
   }
@@ -208,17 +244,119 @@ export function AddRecipeSheet({
                 </button>
               </div>
             </div>
-            <div className="field">
-              <label>メモ</label>
-              <textarea
-                className="input"
-                style={{ minHeight: 70 }}
-                placeholder="次回は少し醤油を減らす。"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-              />
-            </div>
           </div>
+        </div>
+
+        <div className="field" style={{ marginTop: 16 }}>
+          <label>作り方</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 4 }}>
+            {steps.map((step, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  padding: 12,
+                  borderRadius: 20,
+                  background: "var(--color-surface)",
+                }}
+              >
+                <span
+                  style={{
+                    width: 26,
+                    height: 26,
+                    flex: "none",
+                    borderRadius: "50%",
+                    background: "var(--color-accent)",
+                    color: "var(--color-bg)",
+                    display: "grid",
+                    placeItems: "center",
+                    fontFamily: "var(--font-heading)",
+                    fontSize: 13,
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <textarea
+                    className="input"
+                    style={{ minHeight: 44, background: "var(--color-bg)" }}
+                    placeholder={`手順 ${i + 1} を入力`}
+                    value={step.text}
+                    onChange={(e) => updateStepText(i, e.target.value)}
+                  />
+                  {step.photo ? (
+                    <div style={{ position: "relative", width: "fit-content" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={step.photo}
+                        alt=""
+                        style={{
+                          maxWidth: 160,
+                          maxHeight: 120,
+                          borderRadius: 14,
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                      />
+                      <button
+                        className="btn btn-icon"
+                        style={{
+                          position: "absolute",
+                          top: 6,
+                          right: 6,
+                          background: "rgba(245,234,216,.9)",
+                          padding: 5,
+                        }}
+                        onClick={() => removeStepPhoto(i)}
+                      >
+                        <CloseIcon size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      className="btn btn-secondary"
+                      style={{ alignSelf: "flex-start", fontSize: 12, cursor: "pointer" }}
+                    >
+                      <PhotoIcon size={15} />
+                      写真を追加
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={(e) => updateStepPhoto(i, e.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                  )}
+                </div>
+                <button
+                  className="btn btn-icon"
+                  style={{ flex: "none", alignSelf: "flex-start" }}
+                  onClick={() => removeStep(i)}
+                >
+                  <CloseIcon size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              className="btn btn-secondary"
+              style={{ alignSelf: "flex-start", fontSize: 13 }}
+              onClick={() => setSteps((prev) => [...prev, { text: "" }])}
+            >
+              ＋ 手順を追加
+            </button>
+          </div>
+        </div>
+
+        <div className="field" style={{ marginTop: 16 }}>
+          <label>メモ</label>
+          <textarea
+            className="input"
+            style={{ minHeight: 70 }}
+            placeholder="次回は少し醤油を減らす。"
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+          />
         </div>
 
         <button

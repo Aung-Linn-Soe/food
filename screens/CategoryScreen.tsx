@@ -38,6 +38,32 @@ export function CategoryScreen() {
         </p>
       </div>
 
+      <p className="muted-light" style={{ margin: 0, fontSize: 12 }}>
+        カテゴリを削除しても、そのレシピは「未分類」として残ります。
+      </p>
+      <div
+        style={{
+          padding: 16,
+          borderRadius: 26,
+          border: "2px dashed var(--color-neutral-400)",
+          display: "flex",
+          gap: 10,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        <input
+          className="input"
+          style={{ flex: 1, minWidth: 160, minHeight: 44, background: "var(--color-bg)" }}
+          placeholder="例：Myanmar料理／簡単料理／お弁当"
+          value={newCat}
+          onChange={(e) => setNewCat(e.target.value)}
+        />
+        <button className="btn btn-primary" style={{ padding: "11px 20px" }} onClick={handleAdd}>
+          ＋ カテゴリ追加
+        </button>
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {categories.map((c) => {
           const editing = editingId === c.id;
@@ -128,32 +154,6 @@ export function CategoryScreen() {
           );
         })}
       </div>
-
-      <div
-        style={{
-          padding: 16,
-          borderRadius: 26,
-          border: "2px dashed var(--color-neutral-400)",
-          display: "flex",
-          gap: 10,
-          flexWrap: "wrap",
-          alignItems: "center",
-        }}
-      >
-        <input
-          className="input"
-          style={{ flex: 1, minWidth: 160, minHeight: 44, background: "var(--color-bg)" }}
-          placeholder="例：Myanmar料理／簡単料理／お弁当"
-          value={newCat}
-          onChange={(e) => setNewCat(e.target.value)}
-        />
-        <button className="btn btn-primary" style={{ padding: "11px 20px" }} onClick={handleAdd}>
-          ＋ カテゴリ追加
-        </button>
-      </div>
-      <p className="muted-light" style={{ margin: 0, fontSize: 12 }}>
-        カテゴリを削除しても、そのレシピは「未分類」として残ります。
-      </p>
 
       {pendingDelete && (
         <ConfirmDialog

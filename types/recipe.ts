@@ -3,6 +3,11 @@ export type Ingredient = {
   amount: string;
 };
 
+export type Step = {
+  text: string;
+  photo?: string;
+};
+
 export type Recipe = {
   id: string;
   name: string;
@@ -12,7 +17,7 @@ export type Recipe = {
   favorite: boolean;
   tile: string;
   ingredients: Ingredient[];
-  steps: string[];
+  steps: Step[];
   memo: string;
 };
 

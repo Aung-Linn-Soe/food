@@ -124,7 +124,22 @@ export function RecipeDetailSheet({
                   >
                     {i + 1}
                   </span>
-                  <span style={{ fontSize: 16, lineHeight: 1.55, paddingTop: 2 }}>{step}</span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 2 }}>
+                    <span style={{ fontSize: 16, lineHeight: 1.55 }}>{step.text}</span>
+                    {step.photo && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={step.photo}
+                        alt=""
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: 220,
+                          borderRadius: 18,
+                          objectFit: "cover",
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
