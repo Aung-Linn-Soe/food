@@ -29,6 +29,8 @@ type RecipeContextValue = {
   toggleFavorite: (id: string) => void;
   addRecipe: (input: NewRecipeInput) => Promise<void>;
   updateRecipe: (id: string, input: NewRecipeInput) => Promise<void>;
+  logCooked: (id: string) => Promise<void>;
+  undoCooked: (id: string) => Promise<void>;
   addCategory: (name: string) => Promise<void>;
   renameCategory: (id: string, name: string) => Promise<void>;
   removeCategory: (id: string) => Promise<void>;
@@ -62,6 +64,7 @@ type ApiRecipe = {
   favorite: boolean;
   memo: string;
   imageBase64: string | null;
+  cookCount: number;
   ingredients: Ingredient[];
   steps: Step[];
 };
@@ -94,6 +97,7 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
           favorite: r.favorite,
           tile: tileForId(r.id),
           photo: r.imageBase64 ?? undefined,
+          cookCount: r.cookCount,
           ingredients: r.ingredients,
           steps: r.steps,
           memo: r.memo,
@@ -156,6 +160,24 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     [refresh]
   );
 
+  const logCooked = useCallback(async (id: string) => {
+    const res = await fetch(`/api/recipes/${id}/cook`, { method: "POST" });
+    if (!res.ok) return;
+    const data = await res.json();
+    setRecipes((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, cookCount: data.cookCount } : r))
+    );
+  }, []);
+
+  const undoCooked = useCallback(async (id: string) => {
+    const res = await fetch(`/api/recipes/${id}/cook`, { method: "DELETE" });
+    if (!res.ok) return;
+    const data = await res.json();
+    setRecipes((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, cookCount: data.cookCount } : r))
+    );
+  }, []);
+
   const addCategory = useCallback(
     async (name: string) => {
       const trimmed = name.trim();
@@ -213,6 +235,8 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
       toggleFavorite,
       addRecipe,
       updateRecipe,
+      logCooked,
+      undoCooked,
       addCategory,
       renameCategory,
       removeCategory,
@@ -226,6 +250,8 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
       toggleFavorite,
       addRecipe,
       updateRecipe,
+      logCooked,
+      undoCooked,
       addCategory,
       renameCategory,
       removeCategory,

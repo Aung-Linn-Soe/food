@@ -81,6 +81,11 @@ export function RecipeGridCard({
           <span className="muted" style={{ fontSize: 11.5 }}>
             ⏱ {recipe.time}分
           </span>
+          {recipe.cookCount > 0 && (
+            <span className="muted" style={{ fontSize: 11.5 }}>
+              🍳 {recipe.cookCount}回
+            </span>
+          )}
         </div>
       </div>
     </div>

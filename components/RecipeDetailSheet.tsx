@@ -9,12 +9,16 @@ export function RecipeDetailSheet({
   onClose,
   onToggleFavorite,
   onEdit,
+  onStartCooking,
+  onUndoCooking,
 }: {
   recipe: Recipe;
   categoryLabel: string;
   onClose: () => void;
   onToggleFavorite: () => void;
   onEdit: () => void;
+  onStartCooking: () => void;
+  onUndoCooking: () => void;
 }) {
   return (
     <>
@@ -84,6 +88,29 @@ export function RecipeDetailSheet({
               </span>
               <span>⏱ {recipe.time}分</span>
               <span>{recipe.servings}人分</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                🍳 {recipe.cookCount}回作った
+                {recipe.cookCount > 0 && (
+                  <button
+                    onClick={onUndoCooking}
+                    title="間違えて押した場合は1つ戻せます"
+                    style={{
+                      width: 18,
+                      height: 18,
+                      lineHeight: "16px",
+                      borderRadius: "50%",
+                      border: "1px solid var(--color-divider)",
+                      background: "var(--color-surface)",
+                      color: "var(--color-text)",
+                      fontSize: 12,
+                      padding: 0,
+                      cursor: "pointer",
+                    }}
+                  >
+                    −
+                  </button>
+                )}
+              </span>
             </div>
           </div>
           <button className="btn btn-icon" style={{ flex: "none" }} onClick={onClose}>
@@ -174,7 +201,7 @@ export function RecipeDetailSheet({
         )}
 
         <div style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
-          <button className="btn btn-primary" style={{ flex: 1, minWidth: 150, padding: "12px 18px" }} onClick={onClose}>
+          <button className="btn btn-primary" style={{ flex: 1, minWidth: 150, padding: "12px 18px" }} onClick={onStartCooking}>
             調理をはじめる
           </button>
           <button className="btn btn-secondary" style={{ padding: "12px 18px" }} onClick={onToggleFavorite}>

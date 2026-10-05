@@ -17,6 +17,7 @@ export type Recipe = {
   favorite: boolean;
   tile: string;
   photo?: string;
+  cookCount: number;
   ingredients: Ingredient[];
   steps: Step[];
   memo: string;
