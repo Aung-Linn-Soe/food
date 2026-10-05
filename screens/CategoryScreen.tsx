@@ -157,8 +157,8 @@ export function CategoryScreen() {
 
       {pendingDelete && (
         <ConfirmDialog
-          categoryName={pendingDelete.name}
-          recipeCount={recipeCountForCategory(pendingDelete.id)}
+          title={`「${pendingDelete.name}」を削除しますか？`}
+          message={`このカテゴリは一覧から消えます。${recipeCountForCategory(pendingDelete.id)}品のレシピは削除されず「未分類」に移ります。`}
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => {
             removeCategory(pendingDelete.id);

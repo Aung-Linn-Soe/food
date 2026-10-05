@@ -1,23 +1,21 @@
 "use client";
 
 export function ConfirmDialog({
-  categoryName,
-  recipeCount,
+  title,
+  message,
   onCancel,
   onConfirm,
 }: {
-  categoryName: string;
-  recipeCount: number;
+  title: string;
+  message: string;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
   return (
     <div className="dialog-backdrop animate-fade-in">
       <div className="dialog animate-sheet-up">
-        <div className="dialog-title">「{categoryName}」を削除しますか？</div>
-        <div className="dialog-body">
-          このカテゴリは一覧から消えます。{recipeCount}品のレシピは削除されず「未分類」に移ります。
-        </div>
+        <div className="dialog-title">{title}</div>
+        <div className="dialog-body">{message}</div>
         <div className="dialog-actions">
           <button className="btn btn-secondary" style={{ padding: "10px 18px" }} onClick={onCancel}>
             キャンセル

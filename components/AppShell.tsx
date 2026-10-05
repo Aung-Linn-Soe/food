@@ -9,18 +9,28 @@ import { FavoritesScreen } from "@/screens/FavoritesScreen";
 import { CategoryScreen } from "@/screens/CategoryScreen";
 import { RecipeDetailSheet } from "@/components/RecipeDetailSheet";
 import { AddRecipeSheet } from "@/components/AddRecipeSheet";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useRecipes } from "@/store/RecipeContext";
 import { useAuth } from "@/store/AuthContext";
 import { Recipe } from "@/types/recipe";
 
 export function AppShell() {
-  const { categories, categoryName, toggleFavorite, addRecipe, updateRecipe, logCooked, undoCooked } =
-    useRecipes();
+  const {
+    categories,
+    categoryName,
+    toggleFavorite,
+    addRecipe,
+    updateRecipe,
+    removeRecipe,
+    logCooked,
+    undoCooked,
+  } = useRecipes();
   const { username, logout } = useAuth();
   const [tab, setTab] = useState<TabKey>("home");
   const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Recipe | null>(null);
 
   return (
     <div
@@ -97,6 +107,21 @@ export function AppShell() {
           onUndoCooking={() => {
             undoCooked(openRecipe.id);
             setOpenRecipe({ ...openRecipe, cookCount: Math.max(openRecipe.cookCount - 1, 0) });
+          }}
+          onDelete={() => setPendingDelete(openRecipe)}
+        />
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title={`「${pendingDelete.name}」を削除しますか？`}
+          message="このレシピの材料・作り方・写真もすべて削除されます。元に戻すことはできません。"
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={async () => {
+            const id = pendingDelete.id;
+            setPendingDelete(null);
+            setOpenRecipe(null);
+            await removeRecipe(id);
           }}
         />
       )}

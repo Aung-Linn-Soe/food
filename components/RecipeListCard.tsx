@@ -64,7 +64,7 @@ export function RecipeListCard({
           style={{
             fontFamily: "var(--font-heading)",
             fontSize: 17,
-            lineHeight: 1.25,
+            lineHeight: 1.6,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
