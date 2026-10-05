@@ -83,6 +83,11 @@ export function RecipeListCard({
           <span style={{ fontSize: 11.5 }} className="muted">
             {recipe.servings}人分
           </span>
+          {recipe.cookCount > 0 && (
+            <span style={{ fontSize: 11.5 }} className="muted">
+              🍳 {recipe.cookCount}回作った
+            </span>
+          )}
         </div>
         <div
           className="muted-light"

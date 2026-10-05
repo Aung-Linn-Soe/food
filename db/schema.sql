@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS recipes (
   servings INTEGER NOT NULL DEFAULT 0,
   memo TEXT NOT NULL DEFAULT '',
   is_favorite BOOLEAN NOT NULL DEFAULT false,
+  cook_count INTEGER NOT NULL DEFAULT 0,
+  last_cooked_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

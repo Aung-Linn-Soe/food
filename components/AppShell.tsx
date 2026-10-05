@@ -14,7 +14,8 @@ import { useAuth } from "@/store/AuthContext";
 import { Recipe } from "@/types/recipe";
 
 export function AppShell() {
-  const { categories, categoryName, toggleFavorite, addRecipe, updateRecipe } = useRecipes();
+  const { categories, categoryName, toggleFavorite, addRecipe, updateRecipe, logCooked, undoCooked } =
+    useRecipes();
   const { username, logout } = useAuth();
   const [tab, setTab] = useState<TabKey>("home");
   const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
@@ -88,6 +89,14 @@ export function AppShell() {
           onEdit={() => {
             setEditingRecipe(openRecipe);
             setOpenRecipe(null);
+          }}
+          onStartCooking={() => {
+            logCooked(openRecipe.id);
+            setOpenRecipe({ ...openRecipe, cookCount: openRecipe.cookCount + 1 });
+          }}
+          onUndoCooking={() => {
+            undoCooked(openRecipe.id);
+            setOpenRecipe({ ...openRecipe, cookCount: Math.max(openRecipe.cookCount - 1, 0) });
           }}
         />
       )}

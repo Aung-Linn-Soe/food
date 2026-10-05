@@ -10,7 +10,8 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const recipesResult = await pool.query(
-    `SELECT id, name, category_id, cooking_time, servings, memo, is_favorite, image_base64
+    `SELECT id, name, category_id, cooking_time, servings, memo, is_favorite, image_base64,
+            cook_count, last_cooked_at
      FROM recipes WHERE user_id = $1 ORDER BY created_at DESC`,
     [user.id]
   );
@@ -50,6 +51,8 @@ export async function GET() {
     favorite: r.is_favorite,
     memo: r.memo,
     imageBase64: r.image_base64,
+    cookCount: r.cook_count,
+    lastCookedAt: r.last_cooked_at,
     ingredients: ingredientsByRecipe[r.id] ?? [],
     steps: stepsByRecipe[r.id] ?? [],
   }));
