@@ -25,8 +25,8 @@
   --shadow-md: 0 6px 20px rgba(22, 50, 63, 0.14);
   --shadow-lg: 0 16px 40px rgba(22, 50, 63, 0.24);
 
-  --font-heading: var(--font-heading-jp), "Zen Maru Gothic", sans-serif;
-  --font-body: var(--font-body-jp), "Noto Sans JP", sans-serif;
+  --font-heading: var(--font-heading-jp), "Zen Maru Gothic", var(--font-myanmar), sans-serif;
+  --font-body: var(--font-body-jp), "Noto Sans JP", var(--font-myanmar), sans-serif;
 }
 
 * {

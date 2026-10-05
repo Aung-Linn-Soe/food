@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Zen_Maru_Gothic, Noto_Sans_JP } from "next/font/google";
+import { Zen_Maru_Gothic, Noto_Sans_JP, Noto_Sans_Myanmar } from "next/font/google";
 import "./globals.css";
 import { RecipeProvider } from "@/store/RecipeContext";
 import { AuthProvider } from "@/store/AuthContext";
@@ -16,6 +16,12 @@ const bodyFont = Noto_Sans_JP({
   weight: ["400", "500", "700"],
 });
 
+const myanmarFont = Noto_Sans_Myanmar({
+  variable: "--font-myanmar",
+  subsets: ["myanmar"],
+  weight: ["400", "500", "700"],
+});
+
 export const metadata: Metadata = {
   title: "料理レシピ",
   description: "自分だけの料理レシピを登録・管理するアプリ",
@@ -29,7 +35,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ja" className={`${headingFont.variable} ${bodyFont.variable} h-full`}>
+    <html lang="ja" className={`${headingFont.variable} ${bodyFont.variable} ${myanmarFont.variable} h-full`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <RecipeProvider>{children}</RecipeProvider>

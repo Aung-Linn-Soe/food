@@ -11,6 +11,7 @@ export function RecipeDetailSheet({
   onEdit,
   onStartCooking,
   onUndoCooking,
+  onDelete,
 }: {
   recipe: Recipe;
   categoryLabel: string;
@@ -19,6 +20,7 @@ export function RecipeDetailSheet({
   onEdit: () => void;
   onStartCooking: () => void;
   onUndoCooking: () => void;
+  onDelete: () => void;
 }) {
   return (
     <>
@@ -209,6 +211,13 @@ export function RecipeDetailSheet({
           </button>
           <button className="btn btn-secondary" style={{ padding: "12px 18px" }} onClick={onEdit}>
             編集
+          </button>
+          <button
+            className="btn btn-secondary"
+            style={{ padding: "12px 18px", color: "var(--color-accent-700)" }}
+            onClick={onDelete}
+          >
+            削除
           </button>
         </div>
       </div>

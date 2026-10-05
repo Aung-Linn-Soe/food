@@ -29,6 +29,7 @@ type RecipeContextValue = {
   toggleFavorite: (id: string) => void;
   addRecipe: (input: NewRecipeInput) => Promise<void>;
   updateRecipe: (id: string, input: NewRecipeInput) => Promise<void>;
+  removeRecipe: (id: string) => Promise<void>;
   logCooked: (id: string) => Promise<void>;
   undoCooked: (id: string) => Promise<void>;
   addCategory: (name: string) => Promise<void>;
@@ -160,6 +161,14 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
     [refresh]
   );
 
+  const removeRecipe = useCallback(
+    async (id: string) => {
+      await fetch(`/api/recipes/${id}`, { method: "DELETE" });
+      await refresh();
+    },
+    [refresh]
+  );
+
   const logCooked = useCallback(async (id: string) => {
     const res = await fetch(`/api/recipes/${id}/cook`, { method: "POST" });
     if (!res.ok) return;
@@ -235,6 +244,7 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
       toggleFavorite,
       addRecipe,
       updateRecipe,
+      removeRecipe,
       logCooked,
       undoCooked,
       addCategory,
@@ -250,6 +260,7 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
       toggleFavorite,
       addRecipe,
       updateRecipe,
+      removeRecipe,
       logCooked,
       undoCooked,
       addCategory,
